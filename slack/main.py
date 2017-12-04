@@ -11,10 +11,6 @@ from elasticsearch import Elasticsearch
 from pytz import timezone
 from elasticsearch import helpers
 
-count = defaultdict(lambda: 0)
-length = defaultdict(lambda: 0)
-month = defaultdict(lambda: 0)
-
 es = Elasticsearch("localhost:9200")
 
 EXPORT_DIR = "slack_export"
@@ -39,9 +35,6 @@ for file_name in file_list:
         if "user" in message:
             user = message["user"]
             text = message["text"]
-            count[user] += 1
-            length[user] += len(text)
-            month[d.strftime('%Y/%m')] += 1
             message["username"] = members[user]
             message["text_length"] = len(text)
         jp = timezone('Asia/Tokyo')
@@ -56,18 +49,3 @@ for file_name in file_list:
 
 if len(actions) > 0:
     helpers.bulk(es, actions)
-
-print "======= count ========="
-for k, v in sorted(count.items(), key=lambda x: x[1], reverse=True):
-    print members[k], v
-
-print "======= length ========="
-for k, v in sorted(length.items(), key=lambda x: x[1], reverse=True):
-    print members[k], v
-
-print "======= month ========="
-for k, v in month.items():
-    print k, v
-
-
-

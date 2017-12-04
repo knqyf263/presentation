@@ -20,9 +20,6 @@ API_KEY = AP= os.environ.get("API_KEY")
 API_TOKEN = AP= os.environ.get("API_TOKEN")
 BOARD_ID = AP= os.environ.get("BOARD_ID")
 
-count = defaultdict(lambda: 0)
-length = defaultdict(lambda: 0)
-
 today = datetime.now()
 
 es = Elasticsearch("localhost:9200")
@@ -41,25 +38,14 @@ for m in members:
                     '/members/' + member.id + '/actions',
                     query_params={'limit': 1000, "since": since.strftime("%Y-%m-%d"), "before": before.strftime("%Y-%m-%d")})
         for a in actions:
-            count[m.full_name] += 1
             utc_date = parse(a["date"])
             jst_date = utc_date.astimezone(timezone('Asia/Tokyo'))
             a["date"] = jst_date.strftime("%Y-%m-%dT%H:%M:%S%z")
             a["hour"] = jst_date.hour
             a["weekday"] = jst_date.weekday()
             if "text" in a["data"]:
-                length[m.full_name] += len(a["data"]["text"])
                 a["text_length"] = len(a["data"]["text"]) 
-           # es.index(index="trello", doc_type=m.full_name, body=a)
+            es.index(index="trello", doc_type=m.full_name, body=a)
         if today < before:
             break
         d = before
-
-print "======= count ========="
-for k, v in sorted(count.items(), key=lambda x: x[1], reverse=True):
-    print k, v
-
-print "======= length ========="
-for k, v in sorted(length.items(), key=lambda x: x[1], reverse=True):
-    print k, v
-
