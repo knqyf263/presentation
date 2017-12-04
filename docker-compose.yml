@@ -1,0 +1,18 @@
+version: '2'
+services:
+  elasticsearch:
+    image: elasticsearch:5.6.4
+    ports:
+        - 9200:9200
+    expose:
+        - 9300
+    ulimits:
+        nofile:
+            soft: 65536
+            hard: 65536
+  kibana:
+    image: kibana:5.6.4
+    links:
+        - elasticsearch:elasticsearch
+    ports:
+        - 5601:5601
